@@ -79,6 +79,10 @@ local function AddText(Obj, SizeX, SOff, TextX, TextColor)
 		function TextFunc:SetStudsOffset(StudsOffsetB)
 			BB.StudsOffset = StudsOffsetB
 		end
+
+		function TextFunc:Destroy()
+			BB:Destroy()
+		end
 	return TextFunc
 end
 
