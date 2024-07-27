@@ -68,6 +68,9 @@ local function AddText(Obj, SizeX, SOff, TextX, TextColor)
 	TX.TextColor3 = TextColor
 
 	local TextFunc = {}
+		function TextFunc:SetEnable(boolx)
+			BB.Enabled = boolx
+		end
 		function TextFunc:SetSize(SizeB)
 			BB.Size = SizeB
 		end
