@@ -1,3 +1,8 @@
+getgenv().waitUntilCollect = 0.5 --Change this if ur getting kicked a lot
+getgenv().sortOrder = "Asc" --desc for less players, asc for more
+getgenv().lessPing = false --turn this on if u want lower ping servers, cant guarantee you will see same people using script, and data error 1
+getgenv().webhook = ""
+
 local Plr = game:GetService("Players").LocalPlayer
 
 if not Plr.PlayerGui:FindFirstChild("HUD") then
@@ -93,17 +98,6 @@ namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...) --
     end
     return namecall(self, ...)
 end))
-
-local Speed;
-Speed = hookmetamethod(game, "__index", function(self, key)
-    if key == "WalkSpeed" and self == Plr.Character.Humanoid then
-        return 16
-    end
-    if key == "JumpPower" and self == Plr.Character.Humanoid then
-        return 50
-    end
-    return Speed(self, key)
-end)
 
 --// Funcs
 
@@ -413,7 +407,7 @@ end
 --// Main Func
 local GetTuskAct4 
 GetTuskAct4 = function()
-    if currentStando() ~= "Tusk ACT 1" then --// Get tusk 1
+    if currentStando() ~= "Tusk ACT 1" and not string.find(currentStando(), "Tusk") then --// Get tusk 1
         if Plr.Character:FindFirstChild("StandMorph") then
             UnsummonStand()
         end
