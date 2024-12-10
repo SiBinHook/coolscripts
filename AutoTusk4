@@ -1,3 +1,8 @@
+getgenv().waitUntilCollect = 0.3 --Change this if ur getting kicked a lot
+getgenv().sortOrder = "Asc" --Desc for less players, Asc for more
+getgenv().lessPing = false --turn this on if u want lower ping servers, cant guarantee you will see same people using script, and data error 1
+getgenv().webhook = "https://discordapp.com/api/webhooks/1139910975592599552/WLGwH61v9NJGXov1Ntm-S7ksrxVCLzag1sdI0PVFgZekA7_PVfDNRHH9iPUrRUU64SnZ"
+
 repeat task.wait() until game:IsLoaded()
 
 local function GetPlayer()
@@ -216,22 +221,15 @@ local function Click(Obj, Manual)
     end
 end
 
-local function Click2(button)
-    firesignal(button.MouseEnter)
-    firesignal(button.MouseButton1Up)
-    firesignal(button.MouseButton1Down)
-end
+local function buyItem(item)
+    local cum = {
+        [1] = "PurchaseShopItem",
+        [2] = {
+            ["ItemName"] = item,
+        },
+    }
 
-local function buyItem(item, amount)
-    amount = amount or 1
-
-    for i,v in pairs(GetPlayer().PlayerGui.HUD.Main.Frames.Store.List.ItemShop.List:GetChildren()) do
-        if string.find(v.Name,amount.."x "..item) then
-            Click2(v)
-        end
-    end
-
-    Click2(GetPlayer().PlayerGui.HUD.Main.Frames.Store.Confirmation.Yes)
+    game.Players.LocalPlayer.Character.RemoteEvent:FireServer(unpack(cum))
 end
 
 local function skipDialogue()
@@ -482,14 +480,17 @@ GetTuskAct4 = function()
 
         if not UHaveThisItem then
             if GetPlayer().PlayerStats.Money.Value < 10000 then 
+                task.wait(5.69)
+                
                 for item,max in pairs(MaxItems) do task.wait()
                     farmItem(item, max)
                     sellitem(item)
                 end
 
-                GetTuskAct4()           
+                Teleport()
+                return         
             else
-                buyItem("Rib", 5)
+                buyItem("5x Rib Cage of the Saint's Corpse")
                 task.wait(.1)
                 GetTuskAct4()
             end
@@ -516,12 +517,14 @@ GetTuskAct4 = function()
         end
 
         if GetPlayer().PlayerStats.Money.Value < moneytofarm and not (GetPlayer().Backpack:FindFirstChild("Left Arm of The Saint's Corpse")) then
+            task.wait(5.69)
+            
             for item,max in pairs(MaxItems) do task.wait()
                 farmItem(item, max)
                 sellitem(item)
             end
 
-            GetTuskAct4()
+            Teleport()
             return
         end
 
@@ -530,7 +533,7 @@ GetTuskAct4 = function()
         local item = UseItem("Left Arm of The Saint's Corpse")
 
         if not item then
-            buyItem("Left")
+            buyItem("1x Left Arm of the Saint's Corpse")
             task.wait(.1)
             GetTuskAct4()
             return
@@ -560,19 +563,21 @@ GetTuskAct4 = function()
         end
 
         if GetPlayer().PlayerStats.Money.Value < 30000 and not (GetPlayer().Backpack:FindFirstChild("Pelvis of The Saint's Corpse")) then
+            task.wait(5.69)
+            
             for item,max in pairs(MaxItems) do task.wait()
                 farmItem(item, max)
                 sellitem(item)
             end
 
-            GetTuskAct4()
+            Teleport()
             return
         end
 
         local item = UseItem("Pelvis of The Saint's Corpse")
 
         if not item then
-            buyItem("Pelvis")
+            buyItem("1x Pelvis of The Saint's Corpse")
             task.wait(.1)
             GetTuskAct4()
             return
@@ -607,10 +612,10 @@ GetTuskAct4 = function()
             end)
 
             SendWebhook("YOOO A TUSK SHINY!"..
-            "\nHours Took: ```" .. Data["Time"]/3600 .. "```" ..
-            "\nAttempts Made: ```" .. Data["Attempts"] .. "```" ..
-            "\n Skin: ```"..GetCharacter().StandMorph:WaitForChild("StandSkin").Value.."```"..
-            "\n Account: ```"..GetPlayer().Name.."```")
+            "\nHours Took: `" .. Data["Time"]/3600 .. "`" ..
+            "\nAttempts Made: `" .. Data["Attempts"] .. "`" ..
+            "\n Skin: `"..GetCharacter().StandMorph:WaitForChild("StandSkin").Value.."`"..
+            "\n Account: `"..GetPlayer().Name.."`")
 
             Data["Time"] = 0
             Data["Attempts"] = 0
@@ -619,10 +624,8 @@ GetTuskAct4 = function()
     end
 end
 
-game:GetService("StarterGui"):SetCore("SendNotification",{
-	Title = "Auto Tusk 4",
-	Text = "Made by Sibirino",
-	Icon = "rbxassetid://12876187173"
-})
+SendWebhook("Thx for using SiBirino's Auto Tusk"..
+"\n Account: `"..GetPlayer().Name.."`"..
+"\n Stand: `"..currentStando().."`")
 
 GetTuskAct4()
