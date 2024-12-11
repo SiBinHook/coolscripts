@@ -1,8 +1,3 @@
-getgenv().waitUntilCollect = 0.3 --Change this if ur getting kicked a lot
-getgenv().sortOrder = "Asc" --Desc for less players, Asc for more
-getgenv().lessPing = false --turn this on if u want lower ping servers, cant guarantee you will see same people using script, and data error 1
-getgenv().webhook = "https://discordapp.com/api/webhooks/1139910975592599552/WLGwH61v9NJGXov1Ntm-S7ksrxVCLzag1sdI0PVFgZekA7_PVfDNRHH9iPUrRUU64SnZ"
-
 repeat task.wait() until game:IsLoaded()
 
 local function GetPlayer()
