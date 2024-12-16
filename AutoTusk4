@@ -1,3 +1,9 @@
+getgenv().waitUntilCollect = 0.5 --Change this if ur getting kicked a lot
+getgenv().sortOrder = "Asc" --desc for less players, asc for more
+getgenv().lessPing = false --turn this on if u want lower ping servers, cant guarantee you will see same people using script, and data error 1
+getgenv().webhook = ""
+
+
 repeat task.wait() until game:IsLoaded()
 
 local function GetPlayer()
@@ -424,6 +430,7 @@ local function GetSpin()
     if GetPlayer().PlayerStats.Spec.Value == "Spin" then return end
 
     if not (GetPlayer().Backpack:FindFirstChild("Steel Ball")) then
+        task.wait(5.69)
         farmItem("Steel Ball", 1)
         Teleport()
         return
