@@ -110,31 +110,32 @@ end)
 --// Funcs
 
 local function SendWebhook(msg)
-    if getgenv().webhook == "" then continue end
-    local url = getgenv().webhook
+    if getgenv().webhook ~= "" then 
+        local url = getgenv().webhook
 
-    local data;
-    data = {
-        ["embeds"] = {
-            {
-                ["title"] = "Sibirino's Auto Tusk 4",
-                ["description"] = msg,
-                ["type"] = "rich",
-                ["color"] = tonumber(0x69ff90),
+        local data;
+        data = {
+            ["embeds"] = {
+                {
+                    ["title"] = "Sibirino's Auto Tusk 4",
+                    ["description"] = msg,
+                    ["type"] = "rich",
+                    ["color"] = tonumber(0x69ff90),
+                }
             }
         }
-    }
 
-    repeat task.wait() until data
-    local newdata = game:GetService("HttpService"):JSONEncode(data)
+        repeat task.wait() until data
+        local newdata = game:GetService("HttpService"):JSONEncode(data)
 
 
-    local headers = {
-        ["Content-Type"] = "application/json"
-    }
-    local request = http_request or request or HttpPost or syn.request or http.request
-    local abcdef = {Url = url, Body = newdata, Method = "POST", Headers = headers}
-    request(abcdef)
+        local headers = {
+            ["Content-Type"] = "application/json"
+        }
+        local request = http_request or request or HttpPost or syn.request or http.request
+        local abcdef = {Url = url, Body = newdata, Method = "POST", Headers = headers}
+        request(abcdef)
+    end
 end
 
 local function HasStando()
