@@ -110,7 +110,7 @@ end)
 --// Funcs
 
 local function SendWebhook(msg)
-    if getgenv().webhook == "" then return end
+    if getgenv().webhook == "" then continue end
     local url = getgenv().webhook
 
     local data;
