@@ -1,8 +1,13 @@
-getgenv().waitUntilCollect = 0.5 --Change this if ur getting kicked a lot
-getgenv().sortOrder = "Asc" --desc for less players, asc for more
-getgenv().lessPing = false --turn this on if u want lower ping servers, cant guarantee you will see same people using script, and data error 1
-getgenv().webhook = ""
-
+game:GetService("CoreGui").DescendantAdded:Connect(function(child)
+    if child.Name == "ErrorPrompt" then
+        local GrabError = child:FindFirstChild("ErrorMessage",true)
+        repeat task.wait() until GrabError.Text ~= "Label"
+        local Reason = GrabError.Text
+        if Reason:match("kick") or Reason:match("You") or Reason:match("conn") or Reason:match("rejoin") then
+            game:GetService("TeleportService"):Teleport(2809202155, game.Players.LocalPlayer)
+        end
+    end
+end)
 
 repeat task.wait() until game:IsLoaded()
 
@@ -37,17 +42,6 @@ GetCharacter():WaitForChild("RemoteEvent"):FireServer("PressedPlay")
 
 workspace.Map.IMPORTANT.OceanFloor.OceanFloor_Sand_6.Size = Vector3.new(2048, 89, 2048)
 workspace.Map.IMPORTANT.OceanFloor.OceanFloor_Sand_4.Size = Vector3.new(2048, 89, 2048)
-
-game:GetService("CoreGui").DescendantAdded:Connect(function(child)
-    if child.Name == "ErrorPrompt" then
-        local GrabError = child:FindFirstChild("ErrorMessage",true)
-        repeat task.wait() until GrabError.Text ~= "Label"
-        local Reason = GrabError.Text
-        if Reason:match("kick") or Reason:match("You") or Reason:match("conn") or Reason:match("rejoin") then
-            game:GetService("TeleportService"):Teleport(2809202155, GetPlayer())
-        end
-    end
-end)
 
 local timeExecuted, attemptedTusk = 0, 0
 
@@ -114,7 +108,6 @@ GetPlayer().Idled:Connect(function()
 end)
 
 --// Funcs
-
 local function SendWebhook(msg)
     if getgenv().webhook ~= "" then 
         local url = getgenv().webhook
@@ -246,7 +239,6 @@ local function skipDialogue()
 end
 
 --// Hop Func
-
 local PlaceID = game.PlaceId
 local AllIDs = {}
 local foundAnything = ""
@@ -299,7 +291,7 @@ local function TPReturner()
     end
  end
 
- local function Teleport()
+local function Teleport()
     while task.wait() do
        pcall(function()
         if getgenv().lessPing then
@@ -321,7 +313,6 @@ local function TPReturner()
  end
 
 --// Item Farm (Cretids to vez, dank and enxquity) 😘
-
 local function findItem(itemName)
     local ItemsDict = {
         ["Position"] = {},
@@ -413,37 +404,16 @@ local function farmItem(itemName, amount)
 end
 
 local function sellitem(Item)
-        GetCharacter():FindFirstChild("Humanoid"):EquipTool(GetPlayer().Backpack:FindFirstChild(Item))
+    GetCharacter():FindFirstChild("Humanoid"):EquipTool(GetPlayer().Backpack:FindFirstChild(Item))
         
-        local A_1 = "EndDialogue"
-        local A_2 =
-        {
+    local A_1 = "EndDialogue"
+    local A_2 = {
         ["NPC"] = "Merchant",
         ["Option"] = "Option2",
         ["Dialogue"] = "Dialogue5"
-        }
-        local Event = GetCharacter().RemoteEvent
-        Event:FireServer(A_1, A_2)
-end
-
-local function GetSpin()
-    if GetPlayer().PlayerStats.Spec.Value == "Spin" then return end
-
-    if not (GetPlayer().Backpack:FindFirstChild("Steel Ball")) then
-        task.wait(5.69)
-        farmItem("Steel Ball", 1)
-        Teleport()
-        return
-    end
-    local lolez = {
-        [1] = "EndDialogue",
-        [2] = {
-            ["NPC"] = "Gyro",
-            ["Option"] = "Option1",
-            ["Dialogue"] = "Dialogue5"
-        }
     }
-    GetCharacter().RemoteEvent:FireServer(unpack(lolez))
+    
+    GetCharacter().RemoteEvent:FireServer(A_1, A_2)
 end
 
 local MaxItems = {
@@ -470,7 +440,38 @@ local function JesusDialogue()
     skipDialogue()
 end
 
+local function getPity()
+    local ad = not workspace.Map:FindFirstChild("Halloween_Parts") and .02 or .04
+    
+    local onePercent = 1.00
+    for i = onePercent, GetPlayer().PlayerStats.PityCount.Value do
+        onePercent = onePercent+ad
+    end
+    local b = math.floor(onePercent *100)/100
+    b = tostring(b).."%"
+    return b
+end
+
 --// Main Func
+local GetSpin
+GetSpin = function()
+    if GetPlayer().PlayerStats.Spec.Value == "Spin" then return end
+
+    if not (GetPlayer().Backpack:FindFirstChild("Steel Ball")) then
+        task.wait(5.69)
+        farmItem("Steel Ball", 1)
+            
+        if getgenv().HopServers then
+            Teleport()
+        else
+            GetSpin()
+        end
+
+        return
+    end
+    
+    GetCharacter().RemoteEvent:FireServer("EndDialogue", {["NPC"] = "Gyro", ["Option"] = "Option1", ["Dialogue"] = "Dialogue5"})
+end
 
 local GetTuskAct4 
 GetTuskAct4 = function()
@@ -490,7 +491,11 @@ GetTuskAct4 = function()
                     sellitem(item)
                 end
 
-                Teleport()
+                if getgenv().HopServers then
+                    Teleport()
+                else
+                    GetTuskAct4()
+                end
                 return         
             else
                 buyItem("5x Rib Cage of the Saint's Corpse")
@@ -504,6 +509,11 @@ GetTuskAct4 = function()
         repeat
             task.wait()
         until GetCharacter():FindFirstChild("StandMorph") and GetCharacter():FindFirstChild("StandMorph"):FindFirstChild("Stand Name")
+
+        SendWebhook("A Wild Tusk appeared"..
+        "\n Account: `"..GetPlayer().Name.."`"..
+        "\n Stand: `"..currentStando().."`"..
+        "\n Pity: `"..getPity().." ("..GetPlayer().PlayerStats.PityCount.Value..")`")
 
         GetTuskAct4()
     elseif currentStando() == "Tusk ACT 1" then --// get tusk 2     
@@ -527,7 +537,11 @@ GetTuskAct4 = function()
                 sellitem(item)
             end
 
-            Teleport()
+            if getgenv().HopServers then
+                Teleport()
+            else
+                GetTuskAct4()
+            end
             return
         end
 
@@ -546,6 +560,11 @@ GetTuskAct4 = function()
             task.wait() 
         until GetPlayer().PlayerStats.Stand.Value == "Tusk ACT 2"
 
+        SendWebhook("A Wild Tusk appeared"..
+        "\n Account: `"..GetPlayer().Name.."`"..
+        "\n Stand: `"..currentStando().."`"..
+        "\n Pity: `"..getPity().." ("..GetPlayer().PlayerStats.PityCount.Value..")`")
+
         GetTuskAct4()
     elseif currentStando() == "Tusk ACT 2" then --// Get tusk 3
         repeat            
@@ -559,7 +578,12 @@ GetTuskAct4 = function()
             task.wait() 
         until GetPlayer().PlayerStats.Stand.Value == "Tusk ACT 3"
 
-        Teleport()
+        SendWebhook("A Wild Tusk appeared"..
+        "\n Account: `"..GetPlayer().Name.."`"..
+        "\n Stand: `"..currentStando().."`"..
+        "\n Pity: `"..getPity().." ("..GetPlayer().PlayerStats.PityCount.Value..")`")
+
+        GetTuskAct4()
     elseif currentStando() == "Tusk ACT 3" then --// Get tusk 4       
         if GetCharacter():FindFirstChild("StandMorph") then
             UnsummonStand()
@@ -573,7 +597,11 @@ GetTuskAct4 = function()
                 sellitem(item)
             end
 
-            Teleport()
+            if getgenv().HopServers then
+                Teleport()
+            else
+                GetTuskAct4()
+            end
             return
         end
 
@@ -586,30 +614,33 @@ GetTuskAct4 = function()
             return
         end
 
+        local SavedPity = getPity()
+        local SavedPityCount = GetPlayer().PlayerStats.PityCount.Value
+
         repeat 
             task.wait() 
         until GetPlayer().PlayerStats.Stand.Value == "Tusk ACT 4"
 
-        Teleport()
-    elseif currentStando() == "Tusk ACT 4" then
         if not (GetCharacter():FindFirstChild("StandMorph")) then
             SummonStand()
         end
 
         local standSkin = GetCharacter().StandMorph:WaitForChild("StandSkin").Value
 
-        if standSkin == "" then
+        if standSkin == "" and getgenv().FarmUntilGetShiny then
             pcall(function()
                 Data = game:GetService('HttpService'):JSONDecode(readfile("AutoTusk_"..game.Players.LocalPlayer.Name..".txt"))
                 Data["Attempts"] = Data["Attempts"] + 1
             end)
 
-            SendWebhook("Awwww, u didn't get a skin but dont worry! Let's try again!")
+            SendWebhook("Awwww, u didn't get a skin but dont worry! Let's try again!"..
+            "\n Account: `"..GetPlayer().Name.."`"..
+            "\n Pity: `"..SavedPity.." ("..SavedPityCount..")`")
 
             GetPlayer().PlayerStats.Stand.Value = "nooblol"
 
             GetTuskAct4()
-        elseif standSkin ~= "" then
+        elseif standSkin ~= "" and getgenv().FarmUntilGetShiny then
             pcall(function()
                 Data = game:GetService('HttpService'):JSONDecode(readfile("AutoTusk_"..game.Players.LocalPlayer.Name..".txt"))
             end)
@@ -617,18 +648,24 @@ GetTuskAct4 = function()
             SendWebhook("YOOO A TUSK SHINY!"..
             "\nHours Took: `" .. Data["Time"]/3600 .. "`" ..
             "\nAttempts Made: `" .. Data["Attempts"] .. "`" ..
+            "\n Account: `"..GetPlayer().Name.."`"..
             "\n Skin: `"..GetCharacter().StandMorph:WaitForChild("StandSkin").Value.."`"..
-            "\n Account: `"..GetPlayer().Name.."`")
+            "\n Pity: `"..SavedPity.." ("..SavedPityCount..")`")
 
             Data["Time"] = 0
             Data["Attempts"] = 0
             writefile("AutoTusk_"..GetPlayer().Name..".txt", game:GetService('HttpService'):JSONEncode(Data))
+        else
+            SendWebhook("YEY U GOT YOUR TUSK (not shiny)!"..
+            "\nHours Took: `" .. Data["Time"]/3600 .. "`" ..
+            "\n Account: `"..GetPlayer().Name.."`")
         end
     end
 end
 
 SendWebhook("Thx for using SiBirino's Auto Tusk"..
 "\n Account: `"..GetPlayer().Name.."`"..
-"\n Stand: `"..currentStando().."`")
+"\n Stand: `"..currentStando().."`"..
+"\n Pity: `"..getPity().." ("..GetPlayer().PlayerStats.PityCount.Value..")`")
 
 GetTuskAct4()
