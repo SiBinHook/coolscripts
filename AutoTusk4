@@ -1,3 +1,5 @@
+repeat task.wait() until game:IsLoaded()
+
 game:GetService("CoreGui").DescendantAdded:Connect(function(child)
     if child.Name == "ErrorPrompt" then
         local GrabError = child:FindFirstChild("ErrorMessage",true)
@@ -8,8 +10,6 @@ game:GetService("CoreGui").DescendantAdded:Connect(function(child)
         end
     end
 end)
-
-repeat task.wait() until game:IsLoaded()
 
 local function GetPlayer()
     return game.Players.LocalPlayer
@@ -102,6 +102,21 @@ namecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...) --
     return namecall(self, ...)
 end))
 
+local NewEvent = Instance.new("BindableEvent")
+NewEvent.Event:Connect(function()                    
+    local args = {
+        [1] = "Reset",
+        [2] = {
+            ["Anchored"] = false
+        },
+            [3] = "AIII NOBRU APELAO"
+        }
+
+    GetCharacter().RemoteEvent:FireServer(unpack(args))
+end)
+
+game:GetService("StarterGui"):SetCore("ResetButtonCallback", NewEvent)
+
 GetPlayer().Idled:Connect(function()
     game:GetService("VirtualUser"):CaptureController()
     game:GetService("VirtualUser"):ClickButton2(Vector2.new())
@@ -172,6 +187,8 @@ local function UnsummonStand()
 end
 
 local function UseItem(Item_Name)
+    GetCharacter():WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-351.401489, -33.4872475, -204.997055, -0.997462392, -3.61454533e-09, -0.0711953789, -3.48309714e-09, 1, -1.97045136e-09, 0.0711953789, -1.71747061e-09, -0.997462392)
+
     local args = {
             [1] = "LearnSkill",
             [2] = {
@@ -217,14 +234,7 @@ local function Click(Obj, Manual)
 end
 
 local function buyItem(item)
-    local cum = {
-        [1] = "PurchaseShopItem",
-        [2] = {
-            ["ItemName"] = item,
-        },
-    }
-
-    game.Players.LocalPlayer.Character.RemoteEvent:FireServer(unpack(cum))
+    game.Players.LocalPlayer.Character.RemoteEvent:FireServer("PurchaseShopItem", {["ItemName"] = item})
 end
 
 local function skipDialogue()
@@ -258,38 +268,38 @@ local function TPReturner()
 
     local num = 0;
     for _,v in pairs(Site.data) do
-       local Possible = true
-       ID = tostring(v.id)
-       if tonumber(v.maxPlayers) > tonumber(v.playing) then
-          for _,Existing in pairs(AllIDs) do
-             if num ~= 0 then
-                if ID == tostring(Existing) then
-                   Possible = false
+        local Possible = true
+        ID = tostring(v.id)
+        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+            for _,Existing in pairs(AllIDs) do
+                if num ~= 0 then
+                    if ID == tostring(Existing) then
+                        Possible = false
+                    end
+                else
+                    if tonumber(actualHour) ~= tonumber(Existing) then
+                    local delFile = pcall(function()
+                        delfile("SiBinAutoTusk.json")
+                        AllIDs = {}
+                        table.insert(AllIDs, actualHour)
+                    end)
                 end
-             else
-                if tonumber(actualHour) ~= tonumber(Existing) then
-                   local delFile = pcall(function()
-                   delfile("SiBinAutoTusk.json")
-                   AllIDs = {}
-                   table.insert(AllIDs, actualHour)
-                   end)
-                end
-             end
-             num = num + 1
-          end
-          if Possible == true then
-             table.insert(AllIDs, ID)
-             task.wait()
-             pcall(function()
+            end
+            num = num + 1
+        end
+        if Possible == true then
+            table.insert(AllIDs, ID)
+            task.wait()
+            pcall(function()
                 writefile("SiBinAutoTusk.json", game:GetService('HttpService'):JSONEncode(AllIDs))
                 task.wait()
                 game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
-             end)
-             task.wait(4)
-          end
-       end
+            end)
+            task.wait(4)
+            end
+        end
     end
- end
+end
 
 local function Teleport()
     while task.wait() do
@@ -321,7 +331,7 @@ local function findItem(itemName)
     }
 
     for _,item in pairs(workspace["Item_Spawns"].Items:GetChildren()) do
-        if item:FindFirstChild("MeshPart") and item.ProximityPrompt.ObjectText == itemName then
+        if (item:FindFirstChildWhichIsA("MeshPart") or item:FindFirstChildWhichIsA("Part")) and item.ProximityPrompt.ObjectText == itemName then
             if item.ProximityPrompt.MaxActivationDistance == 8 then
                 local Part = item:FindFirstChildWhichIsA("MeshPart") or item:FindFirstChildWhichIsA("Part")
                 table.insert(ItemsDict["Items"], item.ProximityPrompt.ObjectText)
@@ -452,6 +462,26 @@ local function getPity()
     return b
 end
 
+local function swapToStand(standName)
+    if GetPlayer().PlayerStats.Stand.Value == standName then
+        return true
+    end
+
+    for _, objectValue in pairs(GetPlayer().PlayerStats:GetChildren()) do
+        if objectValue.Value == standName and string.find(objectValue.Name, "Slot") and not string.find(objectValue.Name, "Style") then
+            repeat task.wait()
+                GetCharacter().RemoteEvent:FireServer("SwapStand", objectValue.Name)
+                GetPlayer().PlayerGui.HUD.Main.DropMoney.Money.Text = "100"
+            until GetCharacter().Humanoid.Health <= 5
+                
+            repeat task.wait() until GetPlayer().PlayerGui:WaitForChild("HUD").Main.DropMoney.Money.Text ~= "100"
+            return true
+        end
+    end
+
+    return false
+end
+
 --// Main Func
 local GetSpin
 GetSpin = function()
@@ -460,7 +490,9 @@ GetSpin = function()
     if not (GetPlayer().Backpack:FindFirstChild("Steel Ball")) then
         task.wait(5.69)
         farmItem("Steel Ball", 1)
-            
+        
+        print("looking for a stell ball")
+
         if getgenv().HopServers then
             Teleport()
         else
@@ -472,6 +504,9 @@ GetSpin = function()
     
     GetCharacter().RemoteEvent:FireServer("EndDialogue", {["NPC"] = "Gyro", ["Option"] = "Option1", ["Dialogue"] = "Dialogue5"})
 end
+
+local SavedPity = getPity()
+local SavedPityCount = GetPlayer().PlayerStats.PityCount.Value
 
 local GetTuskAct4 
 GetTuskAct4 = function()
@@ -488,8 +523,12 @@ GetTuskAct4 = function()
                 
                 for item,max in pairs(MaxItems) do task.wait()
                     farmItem(item, max)
+
+                    if item == "Rib Cage of The Saint's Corpse" then return end
                     sellitem(item)
                 end
+
+                GetCharacter():WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-351.401489, -33.4872475, -204.997055, -0.997462392, -3.61454533e-09, -0.0711953789, -3.48309714e-09, 1, -1.97045136e-09, 0.0711953789, -1.71747061e-09, -0.997462392)
 
                 if getgenv().HopServers then
                     Teleport()
@@ -510,10 +549,12 @@ GetTuskAct4 = function()
             task.wait()
         until GetCharacter():FindFirstChild("StandMorph") and GetCharacter():FindFirstChild("StandMorph"):FindFirstChild("Stand Name")
 
-        SendWebhook("A Wild Tusk appeared"..
-        "\n Account: `"..GetPlayer().Name.."`"..
-        "\n Stand: `"..currentStando().."`"..
-        "\n Pity: `"..getPity().." ("..GetPlayer().PlayerStats.PityCount.Value..")`")
+        if currentStando() == "Tusk ACT 1" then
+            SendWebhook("A Wild Tusk appeared"..
+            "\n Account: `"..GetPlayer().Name.."`"..
+            "\n Stand: `"..currentStando().."`"..
+            "\n Pity: `"..getPity().." ("..GetPlayer().PlayerStats.PityCount.Value..")`")
+        end
 
         GetTuskAct4()
     elseif currentStando() == "Tusk ACT 1" then --// get tusk 2     
@@ -527,7 +568,7 @@ GetTuskAct4 = function()
 
         if GetPlayer().PlayerStats.Spec.Value == "Spin" then
             moneytofarm -= 10000
-        end
+        end        
 
         if GetPlayer().PlayerStats.Money.Value < moneytofarm and not (GetPlayer().Backpack:FindFirstChild("Left Arm of The Saint's Corpse")) then
             task.wait(5.69)
@@ -536,6 +577,8 @@ GetTuskAct4 = function()
                 farmItem(item, max)
                 sellitem(item)
             end
+
+            GetCharacter():WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-351.401489, -33.4872475, -204.997055, -0.997462392, -3.61454533e-09, -0.0711953789, -3.48309714e-09, 1, -1.97045136e-09, 0.0711953789, -1.71747061e-09, -0.997462392)
 
             if getgenv().HopServers then
                 Teleport()
@@ -592,6 +635,8 @@ GetTuskAct4 = function()
         if GetPlayer().PlayerStats.Money.Value < 30000 and not (GetPlayer().Backpack:FindFirstChild("Pelvis of The Saint's Corpse")) then
             task.wait(5.69)
             
+            GetCharacter():WaitForChild("HumanoidRootPart").CFrame = CFrame.new(-351.401489, -33.4872475, -204.997055, -0.997462392, -3.61454533e-09, -0.0711953789, -3.48309714e-09, 1, -1.97045136e-09, 0.0711953789, -1.71747061e-09, -0.997462392)
+
             for item,max in pairs(MaxItems) do task.wait()
                 farmItem(item, max)
                 sellitem(item)
@@ -607,19 +652,22 @@ GetTuskAct4 = function()
 
         local item = UseItem("Pelvis of The Saint's Corpse")
 
+        SavedPity = getPity()
+        SavedPityCount = GetPlayer().PlayerStats.PityCount.Value
+
         if not item then
             buyItem("1x Pelvis of The Saint's Corpse")
             task.wait(.1)
-            GetTuskAct4()
+            Teleport()
             return
         end
-
-        local SavedPity = getPity()
-        local SavedPityCount = GetPlayer().PlayerStats.PityCount.Value
 
         repeat 
             task.wait() 
         until GetPlayer().PlayerStats.Stand.Value == "Tusk ACT 4"
+
+        GetTuskAct4()
+    elseif currentStando() == "Tusk ACT 4" then --// Get tusk 4 
 
         if not (GetCharacter():FindFirstChild("StandMorph")) then
             SummonStand()
@@ -655,10 +703,30 @@ GetTuskAct4 = function()
             Data["Time"] = 0
             Data["Attempts"] = 0
             writefile("AutoTusk_"..GetPlayer().Name..".txt", game:GetService('HttpService'):JSONEncode(Data))
+        
+            if getgenv().SwapWhenTusk then
+                swapToStand("None")
+                swapToStand("Tusk ACT 1")
+                swapToStand("Tusk ACT 2")
+                swapToStand("Tusk ACT 3")
+
+                GetTuskAct4()
+                return
+            end
         else
             SendWebhook("YEY U GOT YOUR TUSK (not shiny)!"..
             "\nHours Took: `" .. Data["Time"]/3600 .. "`" ..
             "\n Account: `"..GetPlayer().Name.."`")
+
+            if getgenv().SwapWhenTusk then
+                swapToStand("None")
+                swapToStand("Tusk ACT 1")
+                swapToStand("Tusk ACT 2")
+                swapToStand("Tusk ACT 3")
+
+                GetTuskAct4()
+                return
+            end
         end
     end
 end
