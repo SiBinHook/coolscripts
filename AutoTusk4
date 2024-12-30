@@ -40,9 +40,6 @@ end)
 
 GetCharacter():WaitForChild("RemoteEvent"):FireServer("PressedPlay")
 
-workspace.Map.IMPORTANT.OceanFloor.OceanFloor_Sand_6.Size = Vector3.new(2048, 89, 2048)
-workspace.Map.IMPORTANT.OceanFloor.OceanFloor_Sand_4.Size = Vector3.new(2048, 89, 2048)
-
 local timeExecuted, attemptedTusk = 0, 0
 
 local Data = { }
